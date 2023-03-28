@@ -8,9 +8,12 @@ const app = express();
 
 app.use(morgan("dev"));
 
-app.get("/", (req, res, next) => {
-  res.send("Working");
-});
+app.set("view engine", "ejs");
+app.use(express.static("public"));
+
+app.use("/", require("./routes"));
+app.use("/auth", require("./routes/auth"));
+app.use("/user", require("./routes/user"));
 
 app.use((req, res, next) => {
   next(createHttpError.NotFound());
@@ -20,6 +23,8 @@ app.use((error, req, res, next) => {
   error.status = error.status || 500;
 
   res.status(error.status);
+
+  res.render("error_40x", { error });
 
   res.send(error);
 });
