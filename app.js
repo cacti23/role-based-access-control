@@ -10,6 +10,8 @@ app.use(morgan("dev"));
 
 app.set("view engine", "ejs");
 app.use(express.static("public"));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
 app.use("/", require("./routes"));
 app.use("/auth", require("./routes/auth"));
@@ -25,8 +27,6 @@ app.use((error, req, res, next) => {
   res.status(error.status);
 
   res.render("error_40x", { error });
-
-  res.send(error);
 });
 
 const PORT = process.env.PORT || 3000;
