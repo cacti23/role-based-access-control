@@ -7,6 +7,8 @@ require("dotenv").config();
 const session = require("express-session");
 const connectFlash = require("connect-flash");
 const passport = require("passport");
+const MongoStore = require("connect-mongo");
+const connectEnsureLogin = require("connect-ensure-login");
 
 const app = express();
 
@@ -27,12 +29,18 @@ app.use(
       // secure: true,
       httpOnly: true,
     },
+    store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
   })
 );
 
 app.use(passport.initialize());
 app.use(passport.session());
 require("./utils/passport");
+
+app.use((req, res, next) => {
+  res.locals.user = req.user;
+  next();
+});
 
 app.use(connectFlash());
 app.use((req, res, next) => {
@@ -42,7 +50,11 @@ app.use((req, res, next) => {
 
 app.use("/", require("./routes"));
 app.use("/auth", require("./routes/auth"));
-app.use("/user", require("./routes/user"));
+app.use(
+  "/user",
+  connectEnsureLogin.ensureLoggedIn({ redirectTo: "/auth/login" }),
+  require("./routes/user")
+);
 
 app.use((req, res, next) => {
   next(createHttpError.NotFound());
