@@ -2,15 +2,21 @@ const router = require("express").Router();
 const User = require("../models/user");
 const { body, validationResult } = require("express-validator");
 const passport = require("passport");
+const { ensureLoggedIn, ensureLoggedOut } = require("connect-ensure-login");
 
-router.get("/login", async (req, res, next) => {
-  res.render("login");
-});
+router.get(
+  "/login",
+  ensureLoggedOut({ redirectTo: "/" }),
+  async (req, res, next) => {
+    res.render("login");
+  }
+);
 
 router.post(
   "/login",
+  ensureLoggedOut({ redirectTo: "/" }),
   passport.authenticate("local", {
-    successRedirect: "/user/profile",
+    successReturnToOrRedirect: "/",
     failureRedirect: "/auth/login",
     failureFlash: true,
   }),
@@ -19,12 +25,17 @@ router.post(
   }
 );
 
-router.get("/register", async (req, res, next) => {
-  res.render("register");
-});
+router.get(
+  "/register",
+  ensureLoggedOut({ redirectTo: "/" }),
+  async (req, res, next) => {
+    res.render("register");
+  }
+);
 
 router.post(
   "/register",
+  ensureLoggedOut({ redirectTo: "/" }),
   [
     body("email")
       .trim()
@@ -83,12 +94,16 @@ router.post(
   }
 );
 
-router.get("/logout", async (req, res, next) => {
-  req.logout(() => {
-    console.info("User logged out");
-  });
+router.get(
+  "/logout",
+  ensureLoggedIn({ redirectTo: "/" }),
+  async (req, res, next) => {
+    req.logout(() => {
+      console.info("User logged out");
+    });
 
-  res.redirect("/");
-});
+    res.redirect("/");
+  }
+);
 
 module.exports = router;
