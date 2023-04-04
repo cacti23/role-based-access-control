@@ -40,7 +40,7 @@ To start setting up the project, follow these steps:
    DB_NAME=YOUR_DB_NAME
    ```
 
-4. Install MongoDB (Linux Ubuntu)
+4. Install MongoDB
 
    See <https://docs.mongodb.com/manual/installation/> for more infos
 
