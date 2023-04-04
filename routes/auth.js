@@ -1,8 +1,9 @@
 const router = require("express").Router();
-const User = require("../models/user");
 const { body, validationResult } = require("express-validator");
 const passport = require("passport");
 const { ensureLoggedIn, ensureLoggedOut } = require("connect-ensure-login");
+const User = require("../models/user");
+const { registerValidator } = require("../utils/validators");
 
 router.get(
   "/login",
@@ -36,24 +37,7 @@ router.get(
 router.post(
   "/register",
   ensureLoggedOut({ redirectTo: "/" }),
-  [
-    body("email")
-      .trim()
-      .isEmail()
-      .withMessage("Email must be a valid email")
-      .normalizeEmail()
-      .toLowerCase(),
-    body("password")
-      .trim()
-      .isLength(2)
-      .withMessage("Password length short, min 2 char required"),
-    body("password2").custom((value, { req }) => {
-      if (value !== req.body.password) {
-        throw new Error("Password do not match");
-      }
-      return true;
-    }),
-  ],
+  registerValidator,
   async (req, res, next) => {
     try {
       const errors = validationResult(req);
