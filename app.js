@@ -8,7 +8,8 @@ const session = require("express-session");
 const connectFlash = require("connect-flash");
 const passport = require("passport");
 const MongoStore = require("connect-mongo");
-const connectEnsureLogin = require("connect-ensure-login");
+const { ensureLoggedIn } = require("connect-ensure-login");
+const { roles } = require("./utils/constants");
 
 const app = express();
 
@@ -52,8 +53,15 @@ app.use("/", require("./routes"));
 app.use("/auth", require("./routes/auth"));
 app.use(
   "/user",
-  connectEnsureLogin.ensureLoggedIn({ redirectTo: "/auth/login" }),
+  ensureLoggedIn({ redirectTo: "/auth/login" }),
   require("./routes/user")
+);
+
+app.use(
+  "/admin",
+  ensureLoggedIn({ redirectTo: "/auth/login" }),
+  ensureAdmin,
+  require("./routes/admin")
 );
 
 app.use((req, res, next) => {
@@ -80,3 +88,12 @@ mongoose
   .catch((err) => {
     console.log(err.message);
   });
+
+function ensureAdmin(req, res, next) {
+  if (req.user.role === roles.admin) {
+    next();
+  } else {
+    req.flash("warning", "You are not authorized for this route");
+    res.redirect("/");
+  }
+}
